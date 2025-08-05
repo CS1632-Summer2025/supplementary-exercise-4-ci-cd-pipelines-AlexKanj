@@ -1,17 +1,15 @@
-# Use an official Python image (since Rent-A-Cat site is Python-based)
-FROM python:3.9-slim
-
-# Set the working directory
+# Stage 1: Build the app with Maven
+FROM maven:3.9.6-eclipse-temurin-17 AS build
 WORKDIR /app
-
-# Copy everything into the container
 COPY . .
+RUN mvn clean package
 
-# Install dependencies (update if you're using Flask, etc.)
-RUN pip install -r requirements.txt
+# Stage 2: Run the app using the packaged JAR
+FROM eclipse-temurin:17-jdk
+WORKDIR /app
+COPY --from=build /app/target/rentacat-solution-1.0.0.jar app.jar
 
-# Expose port 8080 for the app
-EXPOSE 8080
+# Optional: expose a port if this becomes a server
+# EXPOSE 8080
 
-# Start the app
-CMD ["python", "main.py"]
+CMD ["java", "-jar", "app.jar"]
